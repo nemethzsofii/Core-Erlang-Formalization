@@ -35,6 +35,38 @@ jobs:
               opam config list; opam repo list; opam list
             endGroup
 
+      - name: Install Haskell (GHC + Cabal)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghc cabal-install
+
+      - name: Build project (make)
+        run: |
+          make
+
+      - name: Extract Haskell semantics
+        run: |
+          coqc src/Interpreter/HaskellExtraction.v
+
+      - name: Preprocess extracted Haskell code
+        run: |
+          cd src/Interpreter/HaskellSrc
+          chmod +x preprocess.sh
+          ./preprocess.sh exe/RocqExtraction.hs
+
+      - name: Extract example programs
+        run: |
+          coqc src/Interpreter/ExampleProgExtraction.v
+
+      - name: Build interpreter
+        run: |
+          cd src/Interpreter/HaskellSrc
+          cabal build Interpreter
+
+      - name: Run interpreter
+        run: |
+          cd src/Interpreter/HaskellSrc
+          cabal run Interpreter
 
 # See also:
 # https://github.com/coq-community/docker-coq-action#readme
